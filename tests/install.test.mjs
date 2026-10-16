@@ -30,6 +30,8 @@ test('remote-only shell installation works without dependencies, login or networ
   const home=await mkdtemp(join(tmpdir(),'lstack-install-'));t.after(()=>rm(home,{recursive:true}));
   const result=spawnSync('bash',[join(root,'install.sh'),'remote-environment'],{encoding:'utf8',env:{...process.env,HOME:home,CODEX_HOME:''}});
   assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/no network or login/);
+  const linked=spawnSync(process.execPath,[join(home,'.codex/skills/remote-environment/scripts/remote.mjs'),'--help'],{encoding:'utf8'});
+  assert.equal(linked.status,0,linked.stderr);assert.match(linked.stdout,/files read --environment/);
   await assert.rejects(readFile(join(home,'.local/state/lstack/remote-environment/grant.json')),{code:'ENOENT'});
 });
 

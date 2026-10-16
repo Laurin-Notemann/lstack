@@ -1,0 +1,4 @@
+node_modules/
+skills/visuals/kit/vendor/
+answers.jsonl
+.DS_Store

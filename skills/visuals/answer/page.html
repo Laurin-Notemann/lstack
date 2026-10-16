@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Answer page. Fill QUESTIONS below, put any images next to this file (img: "a.svg"), run: node serve.js page.html -->
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your call</title>
+<script id="questions" type="application/json">
+{
+  "title": "Pick a direction",
+  "intro": "One or two lines on what you're deciding and why it matters.",
+  "questions": [
+    { "id": "q1", "question": "Which setup?", "multi": false, "options": [
+      { "code": "A", "label": "Account holds the tokens", "detail": "works with the laptop asleep", "img": "" },
+      { "code": "B", "label": "Laptop is home", "detail": "nothing new to run, stops when it sleeps" },
+      { "code": "C", "label": "Each machine connects", "detail": "sign in again per server" } ] }
+  ]
+}
+</script>
+<style>
+@font-face { font-family:Excalifont; src:url(/_fonts/Excalifont/Excalifont-Regular-a88b72a24fb54c9f94e3b5fdaa7481c9.woff2) format('woff2'); }
+:root { --ink:#1e1e1e; --muted:#868e96; --line:#dee2e6; --blue:#1971c2; --bluef:#e7f5ff; --bg:#fff; }
+@media (prefers-color-scheme: dark) { :root { --ink:#ececec; --muted:#9aa1a8; --line:#2c2f33; --blue:#4dabf7; --bluef:#10263a; --bg:#121212; } }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, sans-serif; }
+main { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+h1, h2 { font-family:Excalifont, system-ui; font-weight:400; margin:0 0 6px; } h1 { font-size:30px; } h2 { font-size:21px; margin-top:34px; }
+.intro, .detail, .hint { color:var(--muted); } .intro { margin:0 0 8px; }
+.opts { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-top:12px; }
+.opt { border:1.5px solid var(--line); border-radius:10px; padding:14px; cursor:pointer; background:none; color:inherit; text-align:left; font:inherit; }
+.opt:hover { border-color:var(--muted); } .opt[aria-pressed=true] { border-color:var(--blue); background:var(--bluef); }
+.code { font-family:Excalifont, system-ui; font-size:22px; color:var(--blue); margin-right:6px; }
+.opt img { width:100%; margin-top:10px; border-radius:6px; background:#fff; }
+textarea { width:100%; box-sizing:border-box; margin-top:10px; min-height:54px; border:1.5px solid var(--line); border-radius:8px; padding:8px; background:none; color:inherit; font:inherit; }
+.bar { position:sticky; bottom:0; padding:14px 0; background:var(--bg); display:flex; gap:12px; align-items:center; border-top:1px solid var(--line); margin-top:30px; }
+button.send { font:inherit; padding:9px 18px; border-radius:8px; border:0; background:var(--blue); color:#fff; cursor:pointer; }
+</style></head><body><main id="app"></main>
+<script>
+const Q = JSON.parse(document.getElementById('questions').textContent), app = document.getElementById('app'), picks = {};
+const el = (t, a = {}, ...kids) => { const e = document.createElement(t); Object.assign(e, a); kids.forEach(k => e.append(k)); return e; };
+app.append(el('h1', { textContent:Q.title }), el('p', { className:'intro', textContent:Q.intro || '' }));
+for (const q of Q.questions) {
+  picks[q.id] = new Set();
+  const opts = el('div', { className:'opts' });
+  for (const o of q.options) {
+    const b = el('button', { className:'opt', type:'button' }, el('span', { className:'code', textContent:o.code }), el('b', { textContent:o.label }));
+    b.setAttribute('aria-pressed', 'false');
+    if (o.detail) b.append(el('div', { className:'detail', textContent:o.detail }));
+    if (o.img) b.append(el('img', { src:o.img, alt:'' }));
+    b.onclick = () => { const s = picks[q.id];
+      if (!q.multi) { s.clear(); opts.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', 'false')); }
+      s.has(o.code) ? s.delete(o.code) : s.add(o.code); b.setAttribute('aria-pressed', String(s.has(o.code))); };
+    opts.append(b);
+  }
+  app.append(el('h2', { textContent:q.question }), opts, el('textarea', { id:'note-' + q.id, placeholder:'anything to add? (optional)' }));
+}
+const status = el('span', { className:'hint', textContent:'Nothing sent yet.' });
+const send = el('button', { className:'send', type:'button', textContent:'Send answers' });
+send.onclick = async () => {
+  const answers = Q.questions.map(q => ({ id:q.id, question:q.question, choice:[...picks[q.id]], note:document.getElementById('note-' + q.id).value.trim() }));
+  const r = await fetch('/answer', { method:'POST', headers:{ 'content-type':'application/json' }, body:JSON.stringify({ title:Q.title, answers }) });
+  status.textContent = r.ok ? 'Saved. Tell the agent you’re done (or keep changing and send again).' : 'Could not save: ' + r.status;
+};
+app.append(el('div', { className:'bar' }, send, status));
+</script></body></html>

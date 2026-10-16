@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
+import { isUtf8 } from 'node:buffer';
 import { parseArgs } from 'node:util';
-import { resolve } from 'node:path';
+import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 export { Account } from './account.ts';
 export { Remote, execute, validateWritePath, verifiedWrite, makeSigner, secureOrigin } from './remote.ts';
@@ -54,7 +55,7 @@ async function main() {
   const path = required('path');
   const cwd = action === 'read' || action === 'write' ? required('cwd') : values.cwd;
   let contents: string | undefined;
-  if (action === 'write') { validateWritePath(path); contents = await readFile(required('input'), 'utf8'); }
+  if (action === 'write') { validateWritePath(path); const bytes = await readFile(required('input')); if (!isUtf8(bytes)) throw new SafeError('File writes support UTF-8 text only.'); contents = bytes.toString('utf8'); }
   const result = await remote.connected(id, action === 'write' ? ['filesystem:read','filesystem:write'] : ['filesystem:read'], async api => {
     if (action === 'browse') return api.browse({ partialPath: path, ...(cwd ? { cwd } : {}) });
     if (action === 'stat') return api.stat({ paths: [path] });
@@ -64,4 +65,4 @@ async function main() {
   });
   emit({ environmentId: id, result });
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) void main().catch(error => { emit({ error: error instanceof SafeError ? error.message : 'Operation failed. Check sign-in, destination reachability and compatibility.', outcome: error instanceof SafeError ? error.outcome : 'failed' }); process.exitCode = 1; });
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) void main().catch(error => { emit({ error: error instanceof SafeError ? error.message : 'Operation failed. Check sign-in, destination reachability and compatibility.', outcome: error instanceof SafeError ? error.outcome : 'failed' }); process.exitCode = 1; });

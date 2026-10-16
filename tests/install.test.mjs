@@ -30,10 +30,21 @@ test('remote-only shell installation works without dependencies, login or networ
   const home=await mkdtemp(join(tmpdir(),'lstack-install-'));t.after(()=>rm(home,{recursive:true}));
   const result=spawnSync('bash',[join(root,'install.sh'),'remote-environment'],{encoding:'utf8',env:{...process.env,HOME:home,CODEX_HOME:''}});
   assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/no network or login/);
+  const linked=spawnSync(process.execPath,[join(home,'.codex/skills/remote-environment/scripts/remote.mjs'),'--help'],{encoding:'utf8'});
+  assert.equal(linked.status,0,linked.stderr);assert.match(linked.stdout,/files read --environment/);
   await assert.rejects(readFile(join(home,'.local/state/lstack/remote-environment/grant.json')),{code:'ENOENT'});
 });
 
 test('existing visuals answer executable retains CommonJS behavior',()=>{
   const result=spawnSync(process.execPath,[join(root,'skills/visuals/answer/serve.js')],{encoding:'utf8'});
   assert.equal(result.status,2);assert.match(result.stderr,/usage: serve.js/);assert.doesNotMatch(result.stderr,/require is not defined/);
+});
+
+
+test('binary file writes fail before authentication or network',async t=>{
+  const home=await mkdtemp(join(tmpdir(),'lstack-input-'));t.after(()=>rm(home,{recursive:true}));
+  const input=join(home,'binary.dat');await writeFile(input,Buffer.from([0xff,0xfe,0x80]));
+  const result=spawnSync(process.execPath,[join(root,'skills/remote-environment/scripts/remote.mjs'),'files','write','--environment','test','--cwd','/repo','--path','file','--input',input],{encoding:'utf8',env:{...process.env,HOME:home,XDG_STATE_HOME:join(home,'state')}});
+  assert.equal(result.status,1);assert.match(result.stdout,/UTF-8 text only/);
+  await assert.rejects(readFile(join(home,'state/lstack/remote-environment/grant.json')),{code:'ENOENT'});
 });

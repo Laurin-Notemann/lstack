@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
+import { isUtf8 } from 'node:buffer';
 import { parseArgs } from 'node:util';
 import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -54,7 +55,7 @@ async function main() {
   const path = required('path');
   const cwd = action === 'read' || action === 'write' ? required('cwd') : values.cwd;
   let contents: string | undefined;
-  if (action === 'write') { validateWritePath(path); contents = await readFile(required('input'), 'utf8'); }
+  if (action === 'write') { validateWritePath(path); const bytes = await readFile(required('input')); if (!isUtf8(bytes)) throw new SafeError('File writes support UTF-8 text only.'); contents = bytes.toString('utf8'); }
   const result = await remote.connected(id, action === 'write' ? ['filesystem:read','filesystem:write'] : ['filesystem:read'], async api => {
     if (action === 'browse') return api.browse({ partialPath: path, ...(cwd ? { cwd } : {}) });
     if (action === 'stat') return api.stat({ paths: [path] });

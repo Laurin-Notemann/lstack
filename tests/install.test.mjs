@@ -39,3 +39,12 @@ test('existing visuals answer executable retains CommonJS behavior',()=>{
   const result=spawnSync(process.execPath,[join(root,'skills/visuals/answer/serve.js')],{encoding:'utf8'});
   assert.equal(result.status,2);assert.match(result.stderr,/usage: serve.js/);assert.doesNotMatch(result.stderr,/require is not defined/);
 });
+
+
+test('binary file writes fail before authentication or network',async t=>{
+  const home=await mkdtemp(join(tmpdir(),'lstack-input-'));t.after(()=>rm(home,{recursive:true}));
+  const input=join(home,'binary.dat');await writeFile(input,Buffer.from([0xff,0xfe,0x80]));
+  const result=spawnSync(process.execPath,[join(root,'skills/remote-environment/scripts/remote.mjs'),'files','write','--environment','test','--cwd','/repo','--path','file','--input',input],{encoding:'utf8',env:{...process.env,HOME:home,XDG_STATE_HOME:join(home,'state')}});
+  assert.equal(result.status,1);assert.match(result.stdout,/UTF-8 text only/);
+  await assert.rejects(readFile(join(home,'state/lstack/remote-environment/grant.json')),{code:'ENOENT'});
+});

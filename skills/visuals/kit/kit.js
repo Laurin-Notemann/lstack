@@ -43,7 +43,7 @@ window.Kit = function Kit(X, opt = {}) {
       shapes[id] = { kind:'rect', x, y, w, h };
       els.push({ type:'rectangle', id, x, y, width:w, height:h, ...base(o), backgroundColor:o.bg || 'transparent', fillStyle:'solid',
                  roundness:o.round ? { type:3 } : null, customData:{ planned:[w, h] },
-                 ...(o.label ? { label:{ text:o.label, fontSize:o.fs || 15, fontFamily:o.ff || F.NUN, strokeColor:o.lc || o.c || C.INK } } : {}) });
+                 ...(o.label ? { label:{ text:o.label, fontSize:o.fs || 15, fontFamily:o.ff || F.HAND, strokeColor:o.lc || o.c || C.INK } } : {}) });
       return shapes[id];
     }
     // Dashed area with its title in a reserved band at the top; arrows attach to its border like a box.
@@ -66,7 +66,7 @@ window.Kit = function Kit(X, opt = {}) {
       const r = o.radius || 8;
       shapes[id] = { kind:'dot', x:cx - r, y:cy - r, w:2 * r, h:2 * r, cx, cy, r };
       els.push({ type:'ellipse', id, x:cx - r, y:cy - r, width:2 * r, height:2 * r, ...base(o), backgroundColor:o.bg || C.WHITE, fillStyle:'solid' });
-      if (o.label) { const fs = o.fs || 12, m = measure(o.label, fs, F.NUN); text(cx, cy - m.h / 2, o.label, { fs, ff:F.NUN, c:o.c || C.INK, align:'center' }); }
+      if (o.label) { const fs = o.fs || 12, m = measure(o.label, fs, F.HAND); text(cx, cy - m.h / 2, o.label, { fs, ff:F.HAND, c:o.c || C.INK, align:'center' }); }
       return shapes[id];
     }
     const line = (x, y, pts, o = {}) => els.push({ type:'line', x, y, points:pts, ...base(o), ...(o.guide ? { customData:{ guide:true } } : {}) });

@@ -16,7 +16,7 @@ scene('journey', (K, s) => {
       s.box('st' + i, x, yy, 212, 62, { c:hard ? C.RED : c, sw:1.6, bg:hard ? C.REDF : 'transparent' });
       s.dot('n' + i, x, yy, { radius:11, sw:1.5, c:hard ? C.RED : c, label:String(i + 1), fs:12 });
       s.text(x + 20, yy + 10, steps[i][0], { fs:15 });
-      s.text(x + 20, yy + 34, steps[i][1], { fs:12, ff:F.NUN, c:C.GRAY });
+      s.text(x + 20, yy + 34, steps[i][1], { fs:12, c:C.GRAY });
       if (k > 0) s.link('st' + (i - 1), 'st' + i, { c, route:'square' });
     }
   });

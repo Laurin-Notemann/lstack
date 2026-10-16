@@ -1,8 +1,8 @@
-# otter-visuals
+# agent-visuals
 
 One skill that lets coding agents (Claude Code, Codex) draw **hand-drawn pictures of ideas and decisions** —
 sequences, architectures, user journeys, options side by side, story frames, wireframes — check them, and show them
-inline in [Otter Code](https://github.com/otterware-app).
+inline in the chat (Otter Code), or as a PNG anywhere else.
 
 - `AGENTS.md` — the short global instruction every agent loads.
 - `skills/visuals/SKILL.md` — how to decide what to draw, draw it, check it and show it.
@@ -15,8 +15,8 @@ inline in [Otter Code](https://github.com/otterware-app).
 ## Install
 
 ```sh
-git clone https://github.com/Laurin-Notemann/otter-visuals ~/projects/otter-visuals
-~/projects/otter-visuals/install.sh
+git clone https://github.com/Laurin-Notemann/agent-visuals ~/projects/agent-visuals
+~/projects/agent-visuals/install.sh
 ```
 
 Links the skill into `~/.claude/skills/visuals`, every `~/.claude_*` config dir and `~/.codex/skills/visuals`,

@@ -4,8 +4,8 @@
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")" && pwd)"
 SKILL="$REPO/skills/visuals"
-START='<!-- otter-visuals:start (managed by otter-visuals/install.sh) -->'
-END='<!-- otter-visuals:end -->'
+START='<!-- agent-visuals:start (managed by agent-visuals/install.sh) -->'
+END='<!-- agent-visuals:end -->'
 
 echo "· kit dependencies"
 (cd "$SKILL/kit" && npm install --no-audit --no-fund --silent)

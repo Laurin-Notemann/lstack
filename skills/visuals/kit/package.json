@@ -1,5 +1,5 @@
 {
-  "name": "otter-visuals-kit",
+  "name": "agent-visuals-kit",
   "private": true,
   "description": "Headless Excalidraw build + lint for the visuals skill",
   "scripts": { "postinstall": "node vendor.js" },

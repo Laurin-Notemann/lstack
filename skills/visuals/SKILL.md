@@ -48,8 +48,8 @@ Copy the closest example from `examples/` and adapt it; don't start from zero. A
 scene('name', (K, s) => {            // K: kit (K.C colours, K.F fonts), s: this scene
   const { C, F } = K;
   s.text(0, 0, 'Takeaway as the title', { fs:24 });
-  s.box('api', 0, 80, 150, 36, { label:'API', ff:F.NUN });        // id → arrows can attach
-  s.box('db', 260, 80, 150, 36, { label:'Postgres', ff:F.NUN });
+  s.box('api', 0, 80, 150, 36, { label:'API' });                   // id → arrows can attach
+  s.box('db', 260, 80, 150, 36, { label:'Postgres' });
   s.link('api', 'db', { label:'writes' });                         // never hand-place arrows
 }, { route:'square', accept:{ 'too-small':'reason' } });           // both optional
 ```
@@ -106,8 +106,8 @@ node <this skill dir>/kit/build.js crop name.svg x y w h   # zoom in at 3x
 
 ## Style — fixed, don't vary it per picture
 
-- Hand-drawn Excalidraw, roughness 1. Text in **Excalifont** (`F.HAND`, the default); labels inside boxes and small
-  UI text in **Nunito** (`F.NUN`); code in `F.CODE`.
+- Hand-drawn Excalidraw, roughness 1. All text in **Excalifont** (`F.HAND`, the default), box labels included;
+  **Nunito** (`F.NUN`) only for UI text inside wireframes; code in `F.CODE`.
 - Colours (`K.C`): `INK` text and lines · `GRAY` secondary text, captions, lanes · `BLUE`/`BLUEF` the thing in focus,
   the recommendation · `RED`/`REDF` what breaks or costs · `GREEN` what works · `ORS`/`ORF` a third group (cloud) ·
   `YEL` the takeaway highlight. Most of the picture stays ink and gray.

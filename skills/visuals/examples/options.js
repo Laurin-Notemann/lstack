@@ -9,7 +9,7 @@ scene('options', (K, s) => {
     const ox = i * 250, rec = k === 'A', n = id => k + id;
     if (rec) s.highlight(ox - 4, 74, 196, 28);
     s.text(ox, 78, `${k} · ${t}`, { fs:16, c:rec ? C.BLUE : C.INK });
-    const b = (id, x, y, w, label, hot, o = {}) => s.box(n(id), ox + x, y, w, 30, { label, fs:13, ff:F.NUN, c:hot ? C.BLUE : (o.c || C.INK), bg:hot ? C.BLUEF : 'transparent', ...o });
+    const b = (id, x, y, w, label, hot, o = {}) => s.box(n(id), ox + x, y, w, 30, { label, fs:13, c:hot ? C.BLUE : (o.c || C.INK), bg:hot ? C.BLUEF : 'transparent', ...o });
     b('g', 66, 122, 100, 'Google');
     b('m', 66, 186, 100, mid, tok === 'cloud', k === 'C' ? { c:C.GRAY, dash:true } : {});
     b('l', 0, 250, 92, 'laptop', tok === 'laptop'); b('s', 140, 250, 92, 'server');
@@ -17,7 +17,7 @@ scene('options', (K, s) => {
     if (k === 'B') { s.link(n('g'), n('l'), { from:'left', to:'top', toAt:0.25, c:C.BLUE });
                      s.link(n('s'), n('m'), { from:'top', to:'right' }); s.link(n('m'), n('l'), { from:'bottom', to:'top', toAt:0.75 }); }
     if (k === 'C') { s.link(n('g'), n('l'), { from:'left', to:'top', c:C.GRAY }); s.link(n('g'), n('s'), { from:'right', to:'top', c:C.GRAY });
-                     s.text(ox + 46, 288, 'own token', { fs:12, ff:F.NUN, c:C.BLUE, align:'center' }); s.text(ox + 186, 288, 'own token', { fs:12, ff:F.NUN, c:C.BLUE, align:'center' }); }
+                     s.text(ox + 46, 288, 'own token', { fs:12, c:C.BLUE, align:'center' }); s.text(ox + 186, 288, 'own token', { fs:12, c:C.BLUE, align:'center' }); }
   });
   const rows = [['laptop asleep', ['✓ works', '✗ stops', '✓ works']], ['adding a server', ['✓ automatic', '✓ nothing to set up', '✗ sign in again']], ['refresh token lives', ['cloud', 'home machine only', 'every machine']]];
   rows.forEach(([name, v], r) => {

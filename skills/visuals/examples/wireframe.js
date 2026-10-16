@@ -2,7 +2,7 @@
 // red = what B costs the user. Small UI text is accepted here (it's texture, the captions carry the point).
 scene('wireframe', (K, s) => {
   const { C, F } = K;
-  const small = (x, y, t, c, fs) => s.text(x, y, t, { fs:fs || 11, ff:F.NUN, c:c || C.GRAY });
+  const small = (x, y, t, c, fs) => s.text(x, y, t, { fs:fs || 11, c:c || C.GRAY });
   s.text(0, 0, 'Shared shell vs. app inside a frame', { fs:24 });
   s.text(2, 36, 'same three moments, A next to B', { fs:16, c:C.GRAY });
   s.text(40, 72, 'A · shared shell', { fs:20, c:C.BLUE }); s.text(416, 72, 'B · app inside a frame', { fs:20, c:C.RED });
@@ -17,7 +17,7 @@ scene('wireframe', (K, s) => {
   };
   const sidebar = (x, y, items, title, c, h) => {
     s.line(x + 150, y + 20, [[0, 0], [0, (h || H) - 20]], { sw:1.2, c:c || C.INK });
-    if (title) s.text(x + 52, y + 28, title, { fs:12, ff:F.NUN, c:c || C.INK });
+    if (title) s.text(x + 52, y + 28, title, { fs:12, c:c || C.INK });
     items.forEach((t, i) => small(x + 54, y + (title ? 50 : 30) + i * 20, t, c || C.INK, 11));
   };
   const mailList = (x, y, ox) => {
@@ -50,9 +50,9 @@ scene('wireframe', (K, s) => {
       [['App', ['General', 'Appearance', 'Account', 'Agents']], ['Mail', ['Mailboxes', 'Reading']], ['Drive', ['Drives']]].reduce((yy, [g, it]) => {
         small(xa + 54, y + yy, g.toUpperCase(), C.GRAY, 9); it.forEach((t, i) => small(xa + 60, y + yy + 14 + i * 16, t, t === 'Reading' ? C.BLUE : C.INK, 11));
         return yy + 18 + it.length * 16 + 6; }, 28);
-      s.text(xa + 162, y + 30, 'Mail › Reading', { fs:13, ff:F.NUN });
+      s.text(xa + 162, y + 30, 'Mail › Reading', { fs:13 });
       ['Reading pane', 'Mark as read', 'Translation'].forEach((t, i) => { small(xa + 162, y + 60 + i * 30, t, C.INK, 11); s.box(null, xa + 300, y + 56 + i * 30, 40, 18, { sw:1, c:C.GRAY }); });
-      win(xb, y, 'Mail'); s.box(null, xb + 52, y + 26, 300, 202, { sw:1.6, c:C.RED, dash:true }); s.text(xb + 62, y + 36, 'Mail settings', { fs:13, ff:F.NUN, c:C.RED });
+      win(xb, y, 'Mail'); s.box(null, xb + 52, y + 26, 300, 202, { sw:1.6, c:C.RED, dash:true }); s.text(xb + 62, y + 36, 'Mail settings', { fs:13, c:C.RED });
       ['Accounts', 'Signatures', 'Reading', 'Labels'].forEach((t, i) => { s.box(null, xb + 62 + (i % 2) * 140, y + 66 + Math.floor(i / 2) * 60, 130, 48, { sw:1, c:C.RED });
         small(xb + 70 + (i % 2) * 140, y + 72 + Math.floor(i / 2) * 60, t, C.RED, 11); });
       cap(xa, 'one settings, grouped by app', C.GREEN); cap(xb, 'each app brings its own settings', C.RED);

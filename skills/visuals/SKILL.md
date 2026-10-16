@@ -106,8 +106,8 @@ node <this skill dir>/kit/build.js crop name.svg x y w h   # zoom in at 3x
 
 ## Style — fixed, don't vary it per picture
 
-- Hand-drawn Excalidraw, roughness 1. All text in **Excalifont** (`F.HAND`, the default), box labels included;
-  **Nunito** (`F.NUN`) only for UI text inside wireframes; code in `F.CODE`.
+- Hand-drawn Excalidraw, roughness 1. All text in **Excalifont** (`F.HAND`, the default), box labels and wireframes
+  included; code in `F.CODE`.
 - Colours (`K.C`): `INK` text and lines · `GRAY` secondary text, captions, lanes · `BLUE`/`BLUEF` the thing in focus,
   the recommendation · `RED`/`REDF` what breaks or costs · `GREEN` what works · `ORS`/`ORF` a third group (cloud) ·
   `YEL` the takeaway highlight. Most of the picture stays ink and gray.

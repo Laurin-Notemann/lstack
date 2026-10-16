@@ -31,7 +31,7 @@ node skills/visuals/kit/build.js skills/visuals/examples/sequence.js --out /tmp/
 node skills/visuals/kit/build.js lint some-drawing.excalidraw
 ```
 
-## Answer pages over an SSH tunnel
+## Answer pages
 
-The answer server listens on `127.0.0.1:4800–4809` on the machine the agent runs on. Forward those ports when you
-connect, e.g. `ssh $(for p in $(seq 4800 4809); do printf -- '-L %d:localhost:%d ' $p $p; done) you@server`.
+The answer server listens on `127.0.0.1:4800–4809` on the machine the agent runs on. In Otter Code the agent opens it
+in the app's preview pane, so nothing else is needed. Elsewhere, forward those ports when you connect, e.g. `ssh $(for p in $(seq 4800 4809); do printf -- '-L %d:localhost:%d ' $p $p; done) you@server`.

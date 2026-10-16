@@ -4,7 +4,7 @@
 scene('architecture', (K, s) => {
   const { C, F } = K;
   s.text(0, 0, 'Where the parts run', { fs:24 });
-  s.text(2, 36, 'Mail, Calendar and Home live on the laptop · Code can also run on the server · Drive is cloud', { fs:14, c:C.GRAY });
+  s.text(2, 36, 'Mail, Calendar, Home on the laptop · Code also on the server · Drive in the cloud', { fs:14, c:C.GRAY });
   const node = (id, x, y, w, label, o = {}) => s.box(id, x, y, w, 36, { label, fs:14, ff:F.NUN, ...o });
   s.zone('screens', 0, 70, 760, 66, 'your screens');
   node('desk', 170, 90, 150, 'desktop app'); node('web', 360, 90, 150, 'web'); node('phone', 550, 90, 150, 'phone app');

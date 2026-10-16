@@ -108,7 +108,7 @@ window.Kit = function Kit(X, opt = {}) {
       if ((o.route || sopt.route || opt.route || 'straight') === 'straight' && !o.via && !o.from && !o.to) {
         // diagonal: centre to centre, optionally aimed at a point along the target (toAt / fromAt as x or y offsets)
         const ac = [a.x + a.w / 2 + (o.fromDx || 0), a.y + a.h / 2], bc = [b.x + b.w / 2 + (o.toDx || 0), b.y + b.h / 2];
-        const shift = (s, c, dx) => dx ? { ...s, x:s.x + dx } : s;
+        const shift = (s, c, dx) => dx ? { ...s, x:s.x + dx, ...(s.cx != null ? { cx:s.cx + dx } : {}) } : s;
         const p0 = edge(shift(a, ac, o.fromDx), bc[0], bc[1], o.startGap ?? 2);
         let p1 = edge(shift(b, bc, o.toDx), ac[0], ac[1], o.endGap ?? 6);
         if (o.stopAt) {   // the call never arrives: stop part-way and draw a cross
@@ -229,10 +229,17 @@ window.Kit = function Kit(X, opt = {}) {
         const len = ss.reduce((t, [a, b]) => t + Math.hypot(b[0] - a[0], b[1] - a[1]), 0), heads = !!e.endArrowhead + !!e.startArrowhead;
         if (heads && len < (heads === 2 ? 56 : 12)) add('arrow-too-short', `arrow is ${Math.round(len)}px long for ${heads} head(s); move the shapes apart or drop a head`, { x:pts[0][0] - 6, y:pts[0][1] - 6, w:12, h:12 });
       }
-      if (e.type === 'arrow' && e.endArrowhead) {
-        const [q0, q1] = ss[ss.length - 1], L = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) || 1, k = Math.min(1, 18 / L);
-        const tail = [q1[0] - (q1[0] - q0[0]) * k, q1[1] - (q1[1] - q0[1]) * k], isIn = (p, b) => p[0] > b.x && p[0] < b.x + b.w && p[1] > b.y && p[1] < b.y + b.h;
-        for (const s of shapes) if (containers.has(s.id) && !own.has(s.id) && isIn(tail, box(s)) !== isIn(q1, box(s))) add('head-on-border', `arrowhead sits on the border of ${name(s)}; give the target more room inside`, { x:q1[0] - 10, y:q1[1] - 18, w:20, h:20 });
+      if (e.type === 'arrow') {
+        // an arrowhead is ~20px + 3×stroke long; it must not straddle a zone/frame border (checked at both ends)
+        const isIn = (p, b) => p[0] > b.x && p[0] < b.x + b.w && p[1] > b.y && p[1] < b.y + b.h, reach = 20 + 3 * (e.strokeWidth || 2);
+        const ends2 = [];
+        if (e.endArrowhead) ends2.push(ss[ss.length - 1]);
+        if (e.startArrowhead) ends2.push([ss[0][1], ss[0][0]]);
+        for (const [q0, q1] of ends2) {
+          const L = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) || 1, k = Math.min(1, reach / L), tail = [q1[0] - (q1[0] - q0[0]) * k, q1[1] - (q1[1] - q0[1]) * k];
+          for (const s of shapes) if (containers.has(s.id) && !own.has(s.id) && isIn(tail, box(s)) !== isIn(q1, box(s)))
+            add('head-on-border', `arrowhead sits on the border of ${name(s)}; move the target further inside or the border away`, { x:q1[0] - 12, y:q1[1] - 12, w:24, h:24 });
+        }
       }
       for (const s of shapes) {
         if (own.has(s.id) || containers.has(s.id)) continue;
@@ -249,6 +256,11 @@ window.Kit = function Kit(X, opt = {}) {
         }
       }
     }
+    // two arrowheads landing on (nearly) the same spot read as one scribble
+    const heads = strokes.filter(e => e.type === 'arrow' && e.endArrowhead).map(e => { const p = e.points[e.points.length - 1]; return [e.x + p[0], e.y + p[1]]; });
+    for (let i = 0; i < heads.length; i++) for (let j = i + 1; j < heads.length; j++)
+      if (Math.hypot(heads[i][0] - heads[j][0], heads[i][1] - heads[j][1]) < 18)
+        add('heads-collide', 'two arrowheads land on the same spot; spread them (toDx, a different side) or merge the arrows', { x:heads[i][0] - 10, y:heads[i][1] - 10, w:20, h:20 });
     for (const g of guides) for (const t of free.filter(t => !shapes.some(sh => !containers.has(sh.id) && inside(box(t), box(sh), 1)))) if (segs(g).some(sg => hits(sg, grow(box(t), 1)))) add('guide-over-text', `lane/guide line runs through text ${label(t)}`, box(t));
     for (let i = 0; i < free.length; i++) for (let j = i + 1; j < free.length; j++)
       if (overlap(box(free[i]), box(free[j]), 1)) add('text-over-text', `${label(free[i])} overlaps ${label(free[j])}`, box(free[i]));
@@ -263,6 +275,10 @@ window.Kit = function Kit(X, opt = {}) {
     }
     for (const s of shapes) { const p = s.customData?.planned;
       if (p && (Math.abs(s.width - p[0]) > 1 || Math.abs(s.height - p[1]) > 1)) add('box-resized', `${name(s)} grew from ${p[0]}×${p[1]} to ${Math.round(s.width)}×${Math.round(s.height)} to fit its label`, box(s)); }
+    // boxes hold names, not sentences; captions stay short (detail belongs in the chat text or nowhere)
+    const words = t => t.text.split(/\s+/).filter(w => /\w/.test(w)).length;
+    for (const t of texts.filter(t => t.containerId)) if (words(t) > 6 || t.text.split('\n').length > 2) add('wordy-box', `box label ${label(t)} has ${words(t)} words; keep box labels to a name (≤ 6 words, ≤ 2 lines)`, box(t));
+    for (const t of free) if (words(t) > 16) add('wordy-text', `text ${label(t)} has ${words(t)} words; cut it to ≤ 16 or drop it`, box(t));
     for (const t of texts.filter(t => t.containerId)) {
       const s = live.find(e => e.id === t.containerId); if (s && (t.width > s.width - 8 || t.height > s.height - 4)) add('label-too-big', `label ${label(t)} does not fit its box`, box(s));
     }

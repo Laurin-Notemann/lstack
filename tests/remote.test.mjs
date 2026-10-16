@@ -222,7 +222,7 @@ test('bootstrap validates destination origin and binds DPoP without sending A to
   assert.ok(trace.filter(x=>x.url.startsWith('https://target.test')).every(x=>!JSON.stringify(x.init.headers ?? {}).includes('account-A')));
 });
 
-test('full mocked discovery -> DPoP bootstrap -> ticket -> typed RPC read', {timeout:5000}, async t=>{
+test('full mocked flow resolves current tunnel from stale localhost discovery record', {timeout:5000}, async t=>{
   const server=new WebSocketServer({port:0,host:'127.0.0.1'});
   await new Promise(resolve=>server.once('listening',resolve));
   t.after(()=>new Promise(resolve=>{for(const socket of server.clients)socket.terminate();server.close(resolve);}));
@@ -237,10 +237,11 @@ test('full mocked discovery -> DPoP bootstrap -> ticket -> typed RPC read', {tim
   let socketUrl;
   t.mock.method(globalThis,'WebSocket',function(url){socketUrl=new URL(url);return new Original(`ws://127.0.0.1:${server.address().port}`);});
   const endpoint={providerKind:'cloudflare_tunnel',httpBaseUrl:'https://target.test',wsBaseUrl:'wss://target.test/ws'};
+  let insecure=false;
   t.mock.method(globalThis,'fetch',async(url,init={})=>{
-    if(url.endsWith('/v1/environments'))return fake({environments:[{environmentId:'target',label:'Test',endpoint,linkedAt:'now'}]});
+    if(url.endsWith('/v1/environments'))return fake({environments:[{environmentId:'target',label:'Test',endpoint:{providerKind:'manual',httpBaseUrl:'http://127.0.0.1:3773/',wsBaseUrl:'ws://127.0.0.1:3773/'},linkedAt:'now'}]});
     if(url.endsWith('/dpop-token'))return fake({access_token:'relay-token',issued_token_type:'urn:ietf:params:oauth:token-type:access_token',token_type:'DPoP',expires_in:300,scope:'environment:connect environment:status'});
-    if(url.endsWith('/connect'))return fake({environmentId:'target',endpoint,credential:'bootstrap',expiresAt:'later'});
+    if(url.endsWith('/connect'))return fake({environmentId:'target',endpoint:insecure?{...endpoint,httpBaseUrl:'http://127.0.0.1:3773/'}:endpoint,credential:'bootstrap',expiresAt:'later'});
     if(url.endsWith('/.well-known/t3/environment'))return fake({environmentId:'target',label:'Test',platform:{os:'darwin',arch:'arm64'},serverVersion:'test',orchestrationProtocolVersion:2,capabilities:{}});
     if(url.endsWith('/oauth/token'))return fake({access_token:'target-token',issued_token_type:'urn:ietf:params:oauth:token-type:access_token',token_type:'DPoP',expires_in:300,scope:'filesystem:read'});
     if(url.endsWith('/websocket-ticket')){
@@ -254,4 +255,20 @@ test('full mocked discovery -> DPoP bootstrap -> ticket -> typed RPC read', {tim
   const remote=new Remote({getAccessToken:async()=>({accessToken:'synthetic-A'})},'https://relay.test');
   const result=await remote.connected('target',['filesystem:read'],api=>api.read({cwd:'/repo',relativePath:'file'}));
   assert.equal(result.contents,'verified mock');assert.equal(socketUrl.origin,'wss://target.test');assert.equal(socketUrl.searchParams.get('wsTicket'),'synthetic-ticket');assert.equal(socketUrl.searchParams.get('orchestrationProtocol'),'2');
+  insecure=true;
+  await assert.rejects(remote.connected('target',['filesystem:read'],()=>assert.fail('insecure destination must not execute')),/HTTPS/);
+});
+
+test('relay denial reports known safe reason without reflecting server content',async t=>{
+  const remote=new Remote({getAccessToken:async()=>({accessToken:'synthetic-A'})},'https://relay.test');
+  const endpoint={providerKind:'manual',httpBaseUrl:'http://127.0.0.1:3773/',wsBaseUrl:'ws://127.0.0.1:3773/'};
+  let reason='endpoint_provider_not_managed';
+  t.mock.method(globalThis,'fetch',async(url)=>{
+    if(url.endsWith('/v1/environments'))return fake({environments:[{environmentId:'target',label:'Test',endpoint,linkedAt:'now'}]});
+    if(url.endsWith('/dpop-token'))return fake({access_token:'relay-token',issued_token_type:'urn:ietf:params:oauth:token-type:access_token',token_type:'DPoP',expires_in:300,scope:'environment:connect environment:status'});
+    return fake({reason,error_description:'private-response-must-not-be-printed'},403);
+  });
+  await assert.rejects(remote.check('target'),error=>error.message.includes('endpoint_provider_not_managed')&&!error.message.includes('private-response'));
+  reason='private-response-must-not-be-printed';
+  await assert.rejects(remote.check('target'),error=>error.message.includes('HTTP 403')&&!error.message.includes('private-response'));
 });

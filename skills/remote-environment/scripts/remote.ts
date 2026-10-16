@@ -31,7 +31,6 @@ export class Remote {
   async target(environmentId: string) {
     const found = (await this.list()).find(value => value.environmentId === environmentId);
     if (!found) throw new SafeError('Selected environment is not in this account. List destinations and select an explicit environment ID.');
-    secureOrigin(found.endpoint.httpBaseUrl); secureOrigin(found.endpoint.wsBaseUrl, true);
     return found;
   }
   private async relaySession() {
@@ -53,13 +52,15 @@ export class Remote {
     return status;
   }
   async connected<T>(environmentId: string, scopes: string[], use: (api: RemoteApi, os: string) => Promise<T>) {
-    const target = await this.target(environmentId);
+    await this.target(environmentId);
     const session = await this.relaySession();
     const connectUrl = `${this.relay}/v1/environments/${encodeURIComponent(environmentId)}/connect`;
     const bootstrap = decodeUnknownSync(R.RelayEnvironmentConnectResponse)(await request(connectUrl, { method: 'POST', headers: { ...session.headers('POST', connectUrl), 'content-type': 'application/json' }, body: JSON.stringify({ clientProofKeyThumbprint: session.signer.thumbprint }) }));
+    // Discovery can retain a previous manual URL. The authenticated relay connect
+    // response supplies the current endpoint; verify its transport and environment ID.
     const http = secureOrigin(bootstrap.endpoint.httpBaseUrl);
     const ws = secureOrigin(bootstrap.endpoint.wsBaseUrl, true);
-    if (bootstrap.environmentId !== environmentId || http.origin !== new URL(target.endpoint.httpBaseUrl).origin || ws.host !== http.host)
+    if (bootstrap.environmentId !== environmentId || ws.host !== http.host)
       throw new SafeError('Destination identity or endpoint mismatch.');
     const descriptor = decodeUnknownSync(ExecutionEnvironmentDescriptor)(await request(new URL('/.well-known/t3/environment', http).href));
     if (descriptor.environmentId !== environmentId || (descriptor.orchestrationProtocolVersion !== undefined && descriptor.orchestrationProtocolVersion !== 2))

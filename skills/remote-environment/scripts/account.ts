@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { decodeUnknownSync, OtterAccountUser } from './contract-client.ts';
+import { decodeUnknownSync, OtterAccountUser, RelaySchemas as R } from './contract-client.ts';
 
 export const ISSUER = 'https://accounts.otterware.app/v1/auth';
 export const RELAY = 'https://relay.code.otterware.app';
@@ -14,7 +14,11 @@ export async function request(url: string, init: RequestInit = {}) {
   const response = await fetch(url, { ...init, redirect: 'error', signal: init.signal ?? AbortSignal.timeout(20_000) });
   let body: any;
   try { body = await response.json(); } catch { throw new SafeError(`Expected JSON response (HTTP ${response.status}).`); }
-  if (!response.ok) throw new SafeError(`Request rejected (HTTP ${response.status}).`);
+  if (!response.ok) {
+    let reason = '';
+    try { reason = decodeUnknownSync(R.RelayEnvironmentConnectNotAuthorizedReason)(body?.reason); } catch {}
+    throw new SafeError(`Request rejected at ${new URL(url).pathname} (HTTP ${response.status})${reason ? `: ${reason}` : ''}.`);
+  }
   return body;
 }
 export function form(fields: Record<string, string>): RequestInit {

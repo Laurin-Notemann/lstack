@@ -1,0 +1,3 @@
+interface:
+  display_name: "Remote environment"
+  short_description: "Files and commands on selected Otterware hosts"

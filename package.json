@@ -1,0 +1,20 @@
+{
+  "name": "lstack",
+  "private": true,
+  "description": "Laurin's globally installed agent skills and executables",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build:remote": "node scripts/build-remote.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "node scripts/typecheck.mjs"
+  },
+  "devDependencies": {
+    "effect": "4.0.4",
+    "esbuild": "0.25.12",
+    "typescript": "5.9.3",
+    "@types/node": "24.10.0",
+    "ws": "8.18.3"
+  }
+}
